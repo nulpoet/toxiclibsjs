@@ -3529,7 +3529,10 @@ AttractionBehavior.prototype = {
 		var delta = this.attractor.sub(p);
 		var dist = delta.magSquared();
 		if(dist < this.radiusSquared){
-			var f = delta.normalizeTo((1.0 - dist / this.radiusSquared)).jitter(this.jitter).scaleSelf(this.attrStrength);
+			//var f = delta.normalizeTo((1.0 - dist / this.radiusSquared)).jitter(this.jitter).scaleSelf(this.attrStrength);
+			//var factor = 1 / (Math.sqrt(0.1) * this.radius);
+			var factor = 1;
+			var f = delta.normalizeTo((1.0 / (factor*factor*dist))).jitter(this.jitter).scaleSelf(this.attrStrength);
 			p.addForce(f);
 		}
 	},
@@ -10012,10 +10015,11 @@ GravityBehavior.prototype.configure = function(timeStep){
 module.exports = GravityBehavior;
 });
 
-define('toxi/physics2d/behaviors',["require", "exports", "module", "./behaviors/AttractionBehavior","./behaviors/ConstantForceBehavior","./behaviors/GravityBehavior"], function(require, exports, module) {
+define('toxi/physics2d/behaviors',["require", "exports", "module", "./behaviors/AttractionBehavior", /*"./behaviors/BoundaryAttractionBehavior",*/ "./behaviors/ConstantForceBehavior","./behaviors/GravityBehavior"], function(require, exports, module) {
 /** @module toxi/physics2d/behaviors */
 module.exports = {
 	AttractionBehavior: require('./behaviors/AttractionBehavior'),
+	/*BoundaryAttractionBehavior: require('./behaviors/BoundaryAttractionBehavior'),*/
 	ConstantForceBehavior: require('./behaviors/ConstantForceBehavior'),
 	GravityBehavior: require('./behaviors/GravityBehavior')
 };
