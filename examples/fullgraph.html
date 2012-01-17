@@ -2,8 +2,8 @@
 
 <html lang="en">
 <head>
-	<title>Attraction 2D - toxiclibs.js examples</title>
-	<meta name="author" content="Kyle Phillips">
+	<title>Graph viz - toxiclibs.js examples</title>
+	<meta name="author" content="Rohit Hiwale">
 	<!-- Date: 2011-01-09 -->
 	<script type="text/javascript" src="../build/toxiclibs.js"></script>
 
@@ -13,7 +13,7 @@
 <body class="container_12">
 	<header class="grid_12">
 		<hgroup>
-			<h1>Attraction 2D</h1><h2>w/ <a href="http://processingjs.org">Processing.js</a>
+			<h1>Graph viz</h1><h2>w/ <a href="http://processingjs.org">Processing.js</a>
 		</hgroup>
 	</header>
 <script type="text/processing" data-processing-target="myCanvas">
@@ -60,9 +60,6 @@
       Rect = toxi.geom.Rect,
       VerletSpring2D = toxi.physics2d.VerletSpring2D;
 
- window.nodes = [];
- window.edges = {};
-
 import toxi.geom.*;
 import toxi.physics2d.*;
 import toxi.physics2d.behaviors.*;
@@ -89,9 +86,34 @@ void setup() {
   // the NEW way to add gravity to the simulation, using behaviors
   //physics.addBehavior(new GravityBehavior(new Vec2D(0, 0.15)));
   
-  myaddSprings();
-  physics.particles[0].lock();
+  window.nodes = {};
+  window.edges = {};
+
+  VerletParticle2D p = addParticle(new Vec2D(width/2, height/2));
+  window.nodes["root"] = {"particle":p, "id":"root"};
+  p.lock();
+
+  //myaddSprings();
+  //physics.particles[0].lock();
 }
+
+void addnode(/*String id*/) {
+  VerletParticle2D p = addParticle(new Vec2D(width/2+1, height/2+1));
+  /*
+  console.log(id);
+  console.log(window.nodes);
+  console.log({"particle":p, "id":id});
+  window.nodes[id] = {"particle":p, "id":id};
+  console.log(window.nodes);
+  */
+}
+
+void addedge(int n1, int n2, double w){
+	console.log([n1,n2,w]);
+	VerletSpring2D sp = new VerletSpring2D( physics.particles[n1], physics.particles[n2], 2, 0.001*w);
+	physics.addSpring(sp);
+}
+
 
 VerletParticle2D addParticle(Vec2D loc) { 
   VerletParticle2D p = new VerletParticle2D(loc);
@@ -118,15 +140,13 @@ void draw() {
   noStroke();
   fill(255);
   
-  //console.log(physics.particles.length);  
+  //console.log(physics.particles.length);
   physics.update();
   //console.log(physics.particles.length);
   for (int i=0;i<physics.particles.length;i++) {
   	VerletParticle2D p = physics.particles[i];
-    ellipse(p.x, p.y, 5, 5);
+    ellipse(p.x, p.y, 10, 10);
   }
- 
-  
 }
 
 void mousePressed() {
@@ -175,6 +195,7 @@ void mouseReleased() {
 	</ul></p>
 </aside>
 <article id="description" class="grid_12">
+
 <p>This example demonstrates how to use the behavior handling
 (new since toxiclibs-0020 release) and specifically the attraction
 behavior to create forces around the current locations of particles
