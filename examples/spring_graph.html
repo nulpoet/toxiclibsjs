@@ -97,7 +97,7 @@ VerletParticle2D addParticle(Vec2D loc) {
   p.setWeight(1000);
   physics.addParticle(p);
   // add a negative attraction force field around the new particle
-  //physics.addBehavior(new AttractionBehavior(p, 1000, -1.0, 0));
+  physics.addBehavior(new AttractionBehavior(p, 1000, -1000.0, 0));
   return p;
 }
 
@@ -107,7 +107,7 @@ void myaddSprings() {
   console.log('v1,v2 : ' + v1.toString() +' '+ v2.toString());
   VerletParticle2D p1 = addParticle(v1);  
   VerletParticle2D p2 = addParticle(v2);
-  VerletSpring2D sp = new VerletSpring2D(p1, p2, 100, 0.2);
+  VerletSpring2D sp = new VerletSpring2D(p1, p2, 20, 0.002);
   console.log('sp : '+sp.toString());
   physics.addSpring(sp);
 }
