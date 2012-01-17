@@ -3526,13 +3526,25 @@ var	AttractionBehavior = function(attractor,radius,strength,jitter){
 
 AttractionBehavior.prototype = {
 	applyBehavior: function(p){ //apply() is reserved, so this is now applyBehavior
+		if (p === this.attractor){
+			return this;
+		}
 		var delta = this.attractor.sub(p);
 		var dist = delta.magSquared();
+		
+		if (dist === 0) {
+			//console.log(["\n here \n"]);
+			delta.set(340-p.x, 191-p.y);
+			dist = 0.000001;
+		}
+		
 		if(dist < this.radiusSquared){
-			//var f = delta.normalizeTo((1.0 - dist / this.radiusSquared)).jitter(this.jitter).scaleSelf(this.attrStrength);
-			//var factor = 1 / (Math.sqrt(0.1) * this.radius);
-			var factor = 1;
-			var f = delta.normalizeTo((1.0 / (factor*factor*dist))).jitter(this.jitter).scaleSelf(this.attrStrength);
+//			var f = delta.normalizeTo((1.0 - dist / this.radiusSquared)).jitter(this.jitter).scaleSelf(this.attrStrength);
+			var factor = this.radius;
+			var f = delta.normalizeTo((1.0 / (dist/(factor*factor)))).jitter(this.jitter).scaleSelf(this.attrStrength);
+			if (f.magnitude() === 0) {
+				//console.log("\nforce is zero with [attractor, p] = " + this.attractor.toString() + ' , ' + p.toString() + '\n');
+			}
 			p.addForce(f);
 		}
 	},
@@ -3647,18 +3659,24 @@ module.exports = MinConstraint;
 });
 
 define('toxi/physics2d/constraints/RectConstraint',["require", "exports", "module"], function(require, exports, module) {
+	
+var Rect = require('../../geom/Rect'),
+	Ray2D = require('../../geom/Ray2D'),
+	Vec2D = require('../../geom/Vec2D');
+	
 var	RectConstraint = function(a,b){
 	if(arguments.length == 1){
 		this.rect = a.copy();
 	} else if(arguments.length > 1){
-		this.rect = new toxi.Rect(a,b);
+		this.rect = new Rect(a,b);
 	}
-	this.intersectRay = new toxi.Ray2D(this.rect.getCentroid(), new toxi.Vec2D());
+	this.intersectRay = new Ray2D(this.rect.getCentroid(), new Vec2D());
 };
 
 RectConstraint.prototype = {
 	applyConstraint: function(p){
 		if(this.rect.containsPoint(p)){
+			console.log("\n hit boundary \n");
 			p.set(this.rect.intersectsRay(this.intersectRay.setDirection(this.intersectRay.sub(p)),0,Number.MAX_VALUE));
 		}
 	},
@@ -9813,7 +9831,7 @@ VerletParticle2D.prototype.update = function(){
 		//applyForce protected
 		(function(){
 			that.temp.set(that);
-			that.addSelf(that.sub(that.prev).addSelf(that.force.scale(that.weight)));
+			that.addSelf(that.sub(that.prev).addSelf(that.force.scale(that.invWeight)));
 			that.prev.set(that.temp);
 			that.force.clear();
 		})();
@@ -11961,6 +11979,18 @@ VerletPhysics2D.removeConstraintFromAll = function(c,list){
 
 VerletPhysics2D.prototype = {
 	
+	addConstraintToAll: function(c, list){
+		for(var i=0;i<list.length;i++){
+			list[i].addConstraint(c);
+		}
+	},
+
+	removeConstraintFromAll: function(c,list){
+		for(var i=0;i<list.length;i++){
+			list[i].removeConstraint(c);
+		}
+	},
+		
 	addBehavior: function(behavior){
 		behavior.configure(this.timeStep);
 		this.behaviors.push(behavior);
