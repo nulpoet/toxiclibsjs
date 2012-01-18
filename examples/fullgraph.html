@@ -4,61 +4,54 @@
 <head>
 	<title>Graph viz - toxiclibs.js examples</title>
 	<meta name="author" content="Rohit Hiwale">
-	<!-- Date: 2011-01-09 -->
+	<!-- Date: 2011-01-09 -->	
 	<script type="text/javascript" src="../build/toxiclibs.js"></script>
-
 	<script type="text/javascript" src="js/processing.js"></script>
 	<link href="css/style.css" rel="stylesheet" type="text/css" media="screen">
+	
+	<script type="text/javascript">
+	(function (){
+		var i, t;
+		window.graph = {};
+		window.graph.nodes = {
+					'1' : {'particle':undefined, 'id':'1', 'edges': [{'node':'2', 'weight':2}, {'node':'3', 'weight':2}, {'node':'4', 'weight':6}] },
+					'2' : {'particle':undefined, 'id':'2', 'edges': []},
+					'3' : {'particle':undefined, 'id':'3', 'edges': []},
+					'4' : {'particle':undefined, 'id':'4', 'edges': []}
+				};
+		window.graph.edges = [];
+		for (node1 in window.graph.nodes){
+			t = window.graph.nodes[node1];
+			for (i in t['edges']){
+				window.graph.edges.push( {'node1':node1, 'node2':t['edges'][i]['node'], 'weight':t['edges'][i]['weight']} );
+			}
+		}
+		console.log(window.graph.edges);
+		console.log("graph init step done");
+	}());
+	</script>
+	
 </head>
+
 <body class="container_12">
 	<header class="grid_12">
 		<hgroup>
 			<h1>Graph viz</h1><h2>w/ <a href="http://processingjs.org">Processing.js</a>
 		</hgroup>
 	</header>
+
 <script type="text/processing" data-processing-target="myCanvas">
-/**
- * <p>This example demonstrates how to use the behavior handling
- * (new since toxiclibs-0020 release) and specifically the attraction
- * behavior to create forces around the current locations of particles
- * in order to attract (or deflect) other particles nearby.</p>
- *
- * <p>Behaviors can be added and removed dynamically on both a
- * global level (for the entire physics simulation) as well as for
- * individual particles only.</p>
- * 
- * <p>Usage: Click and drag mouse to attract particles</p>
- */
+console.log("inside processing code");
 
-/* 
- * Copyright (c) 2010 Karsten Schmidt
- * 
- * This demo & library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * http://creativecommons.org/licenses/LGPL/2.1/
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-
- var  VerletPhysics2D = toxi.physics2d.VerletPhysics2D,
-      VerletParticle2D = toxi.physics2d.VerletParticle2D,
-	  RectConstraint = toxi.physics2d.constraints.RectConstraint,
-      AttractionBehavior = toxi.physics2d.behaviors.AttractionBehavior,
-      BoundaryAttractionBehavior = toxi.physics2d.behaviors.BoundaryAttractionBehavior,
-      GravityBehavior = toxi.physics2d.behaviors.GravityBehavior,
-      Vec2D = toxi.geom.Vec2D,
-      Rect = toxi.geom.Rect,
-      VerletSpring2D = toxi.physics2d.VerletSpring2D;
+var  VerletPhysics2D = toxi.physics2d.VerletPhysics2D,
+     VerletParticle2D = toxi.physics2d.VerletParticle2D,
+	 RectConstraint = toxi.physics2d.constraints.RectConstraint,
+     AttractionBehavior = toxi.physics2d.behaviors.AttractionBehavior,
+     BoundaryAttractionBehavior = toxi.physics2d.behaviors.BoundaryAttractionBehavior,
+     GravityBehavior = toxi.physics2d.behaviors.GravityBehavior,
+     Vec2D = toxi.geom.Vec2D,
+     Rect = toxi.geom.Rect,
+     VerletSpring2D = toxi.physics2d.VerletSpring2D;
 
 import toxi.geom.*;
 import toxi.physics2d.*;
@@ -76,41 +69,31 @@ VerletParticle2D pm;
 
 void setup() {
   size(680, 382);
+
   // setup physics with 10% drag
   physics = new VerletPhysics2D();
   window.myphysics = physics;
-
   physics.setDrag(0.01);
   physics.setWorldBounds(new Rect(0, 0, width, height));
-
-  // the NEW way to add gravity to the simulation, using behaviors
-  //physics.addBehavior(new GravityBehavior(new Vec2D(0, 0.15)));
-  
-  window.nodes = {};
-  window.edges = {};
-
-  VerletParticle2D p = addParticle(new Vec2D(width/2, height/2));
-  window.nodes["root"] = {"particle":p, "id":"root"};
-  p.lock();
-
-  //myaddSprings();
-  //physics.particles[0].lock();
 }
 
-void addnode(/*String id*/) {
-  VerletParticle2D p = addParticle(new Vec2D(width/2+1, height/2+1));
-  /*
-  console.log(id);
-  console.log(window.nodes);
-  console.log({"particle":p, "id":id});
-  window.nodes[id] = {"particle":p, "id":id};
-  console.log(window.nodes);
-  */
+VerletParticle2D getorsetnode(String id) {
+  if(graph.nodes[id] == undefined){
+	graph.nodes[id] = {'particle':undefined, 'id':id};
+  }
+  if(graph.nodes[id]['particle'] == undefined){
+    VerletParticle2D p = addParticle( Vec2D.randomVector().scale(50).addSelf(width/2, height/2) );
+    window.graph.nodes[id]["particle"] = p;
+  }
+  return graph.nodes[id]["particle"];
 }
 
-void addedge(int n1, int n2, double w){
-	console.log([n1,n2,w]);
-	VerletSpring2D sp = new VerletSpring2D( physics.particles[n1], physics.particles[n2], 2, 0.001*w);
+void setedge(String id1, String id2, double w){
+	console.log([id1,id2,w]);
+	VerletParticle2D p1 = getorsetnode(id1);
+	VerletParticle2D p2 = getorsetnode(id2);
+	
+	VerletSpring2D sp = new VerletSpring2D( p1, p2, 2, 0.001*w);
 	physics.addSpring(sp);
 }
 
@@ -122,17 +105,6 @@ VerletParticle2D addParticle(Vec2D loc) {
   // add a negative attraction force field around the new particle
   physics.addBehavior(new AttractionBehavior(p, 1000, -1000.0, 0));
   return p;
-}
-
-void myaddSprings() {
-  Vec2D v1 = new Vec2D(width/2-1, height/2);
-  Vec2D v2 = new Vec2D(width/2+1, height/2);
-  console.log('v1,v2 : ' + v1.toString() +' '+ v2.toString());
-  VerletParticle2D p1 = addParticle(v1);  
-  VerletParticle2D p2 = addParticle(v2);
-  VerletSpring2D sp = new VerletSpring2D(p1, p2, 20, 0.002);
-  console.log('sp : '+sp.toString());
-  physics.addSpring(sp);
 }
 
 void draw() {
@@ -150,19 +122,9 @@ void draw() {
 }
 
 void mousePressed() {
-  //addParticle();
-  mousePos = new Vec2D(mouseX, mouseY);
-  
-  pm = new VerletParticle2D(mousePos);
-  pm.setWeight(1000);
-  physics.addParticle(pm);
-  
-  pm.lock();
-  
-  spm = new VerletSpring2D(pm, physics.particles[1], 20, 0.2);
-  console.log('spm : '+spm.toString());
-  window.myspm = spm;
-  physics.addSpring(spm);
+  var e = window.graph.edges.pop();
+  console.log(e);
+  setedge(e['node1'], e['node2'], e['weight']);
 }
 
 void mouseDragged() {
@@ -170,20 +132,14 @@ void mouseDragged() {
   mousePos.set(mouseX, mouseY);
 }
 
-void mouseReleased() {
-  // remove the mouse attraction when button has been released
-  //physics.removeBehavior(mouseAttractor);
-  physics.removeSpring(spm);
-  physics.removeParticle(pm);
-  //physics.particles[0].unlock();
+void mouseReleased() {  
 }
-
-
 </script>
 
 <canvas id="myCanvas" width="200" height="200">
 	your browser doesnt support canvas
 </canvas>
+
 <section class="grid_12" id="details">
 <aside id="authors" class="grid_6">
 <p>original example by <a href="http://postspectacular.com">Karsten Schmidt</a><br/>

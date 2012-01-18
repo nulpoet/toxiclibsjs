@@ -1,0 +1,21 @@
+<html>
+
+	<head>
+		<script type="text/javascript" src="js/require.js"></script>
+	</head>
+	
+	
+	<body>
+	
+		<script type="text/javascript">			
+			console.log("here");
+			//console.log(require);
+
+			require(["js/order!js/one.js", "js/order!js/two.js", "js/order!js/three.js"], function () {
+				console.log("here again!");
+			});
+		</script>
+	
+	</body>
+
+</html>
