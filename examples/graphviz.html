@@ -1,0 +1,173 @@
+<html>
+	<head>
+		<script type="text/javascript" src="js/processing.js"></script>
+	</head>
+	<body>
+		<!--script type="text/processing" data-processing-target="myCanvas"-->
+	 	<script type="text/processing" data-processing-target="myCanvas">
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Node {
+    String id;
+    int x;
+    int y;
+    String imageurl;
+    PImage I;
+
+    public Node(String id, int x, int y, String imageurl){
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.imageurl = imageurl;
+		this.I = loadImage(imageurl);
+    }
+}
+
+public class Graphviz {
+    int height, width;
+
+    Map<Node, List<Node>> adj;
+
+    /**
+     * @param h the height of canvas     
+     */
+    public Graphviz(int h, int w){
+        this.height = h;
+        this.width = w;
+        this.adj= new HashMap<Node, List<Node>>();
+    }
+
+    // add a connection from -> to
+    public boolean add(Node from, Node to) {
+       List<Node> tos= adj.get(from);
+       if (tos == null) // from is not in the map
+          return false;
+       tos.add(to); // add a new to
+       return true;
+    }
+    // add a single node
+    public boolean add(Node new_node) {
+       List<Node> tos= adj.get(new_node);
+       if (tos != null) // already in the list
+          return false;
+       tos= new ArrayList<Node>();
+       adj.put(new_node, tos); // add new_node and a new empty adj. list
+       return true;
+    }
+}
+
+// Global variables
+PImage b;
+float radius = 50.0;
+int X, Y;
+int nX, nY;
+int delay = 16;
+int iconsize = 40;
+
+Graphviz gv;
+
+// Setup the Processing Canvas
+void setup(){
+
+		gv = new Graphviz(400, 400);
+
+		Node n1 = new Node("1", gv.width/3, gv.height/3, "images/Ishqiya.jpg");
+        Node n2 = new Node("2", 2*gv.width/3, gv.height/3, "images/Ishqiya.jpg");
+        Node n3 = new Node("3", gv.width/3, 2*gv.height/3, "images/Ishqiya.jpg");
+        
+        gv.add(n1);
+        gv.add(n2);
+        gv.add(n3);
+        gv.add(n1, n2);
+        gv.add(n1, n3);
+
+  size(gv.width, gv.height);
+  strokeWeight(2);
+  frameRate(2);
+
+  PFont fontA = loadFont("courier");
+  textFont(fontA, 14); 
+
+  X = width / 2;
+  Y = height / 2;
+  nX = X;
+  nY = Y;
+
+  // noLoop();
+
+  // Images must be in the "data" directory to load correctly
+  b = loadImage("images/Ishqiya.jpg");
+  
+  /*
+  for(Node n : gv.adj.keySet()){
+            println(n.id );
+			n.I = loadImage(n.imageurl);
+  }
+  */
+}
+
+void plot_graph(Graphviz gv){
+	
+	for(Node n : gv.adj.keySet()){            			
+            for(Node m : gv.adj.get(n)) {
+                line(n.x, n.y, m.x, m.y);
+			}
+        }
+
+	for(Node n : gv.adj.keySet()){
+		image(n.I, n.x-iconsize/2, n.y-iconsize/2, iconsize, iconsize);
+		//println(n.id + " ! ");
+	}
+	
+}
+
+// Main draw loop
+void draw(){
+  
+  radius = radius + sin( frameCount / 4 );
+  
+  // Track circle to new destination
+  X+=(nX-X)/delay;
+  Y+=(nY-Y)/delay;
+  
+  // Fill canvas grey
+  background( 100 );
+  
+  // Set fill-color to blue
+  fill( 0, 121, 184 );
+  
+  // Set stroke-color white
+  stroke(255); 
+  
+  // Draw circle
+  ellipse( X, Y, radius, radius );
+  image(b, X-20, Y-20, 40, 40);
+
+  plot_graph(gv);
+
+  /*
+  for(Node n : gv.adj.keySet()){
+		image(n.I, n.x-iconsize/2, n.y-iconsize/2, iconsize, iconsize/2);
+		println(n.id + " ! ");
+	}
+  */
+	
+                    
+}
+
+
+// Set circle's next destination
+void mousePressed(){
+  nX = mouseX;
+  nY = mouseY;  
+}
+
+		</script>
+	 
+		<canvas id="myCanvas" width="200" height="200">
+	</body>
+</html>

@@ -14,19 +14,28 @@
 		var i, t;
 		window.graph = {};
 		window.graph.nodes = {
-					'1' : {'particle':undefined, 'id':'1', 'edges': [{'node':'2', 'weight':2}, {'node':'3', 'weight':2}, {'node':'4', 'weight':6}] },
+					'1' : {'particle':undefined, 'id':'1', 'edges': [{'node':'2', 'weight':2}, {'node':'3', 'weight':2}, {'node':'4', 'weight':6}, {'node':'5', 'weight':6}, {'node':'6', 'weight':6}] },
 					'2' : {'particle':undefined, 'id':'2', 'edges': []},
 					'3' : {'particle':undefined, 'id':'3', 'edges': []},
-					'4' : {'particle':undefined, 'id':'4', 'edges': []}
+					'4' : {'particle':undefined, 'id':'4', 'edges': []},
+					'5' : {'particle':undefined, 'id':'5', 'edges': []},
+					'6' : {'particle':undefined, 'id':'6', 'edges': [{'node':'7', 'weight':2}, {'node':'8', 'weight':2}, {'node':'9', 'weight':6}, {'node':'10', 'weight':6}]},
+					'7' : {'particle':undefined, 'id':'7', 'edges': []},
+					'8' : {'particle':undefined, 'id':'8', 'edges': []},
+					'9' : {'particle':undefined, 'id':'9', 'edges': []},
+					'10' : {'particle':undefined, 'id':'10', 'edges': []}
 				};
 		window.graph.edges = [];
+		window.graph.edgelist = [];
 		for (node1 in window.graph.nodes){
 			t = window.graph.nodes[node1];
 			for (i in t['edges']){
 				window.graph.edges.push( {'node1':node1, 'node2':t['edges'][i]['node'], 'weight':t['edges'][i]['weight']} );
+				window.graph.edgelist.push( [node1, t['edges'][i]['node']] );
 			}
 		}
 		console.log(window.graph.edges);
+		console.log(window.graph.edgelist);
 		console.log("graph init step done");
 	}());
 	</script>
@@ -51,6 +60,7 @@ var  VerletPhysics2D = toxi.physics2d.VerletPhysics2D,
      GravityBehavior = toxi.physics2d.behaviors.GravityBehavior,
      Vec2D = toxi.geom.Vec2D,
      Rect = toxi.geom.Rect,
+	 Line2D = toxi.geom.Line2D,
      VerletSpring2D = toxi.physics2d.VerletSpring2D;
 
 import toxi.geom.*;
@@ -119,6 +129,16 @@ void draw() {
   	VerletParticle2D p = physics.particles[i];
     ellipse(p.x, p.y, 10, 10);
   }
+  
+  var j;
+  for (j in window.graph.edgelist) {
+    var n1 = window.graph.edgelist[j][0];
+	var n2 = window.graph.edgelist[j][1];
+	VerletParticle2D p1 = window.graph.nodes[n1]['particle'];
+	VerletParticle2D p2 = window.graph.nodes[n2]['particle'];
+	Line2D(p1, p2);
+  }
+  
 }
 
 void mousePressed() {
